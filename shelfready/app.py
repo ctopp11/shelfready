@@ -116,13 +116,17 @@ class Handler(SimpleHTTPRequestHandler):
             self._json(400, {"error": str(exc)})
             return
         if self.path == "/api/check":
-            listing = kdp_rules.sanitise_listing(data.get("listing", {})) if data.get("sanitise") else {
-                "title": str(data.get("listing", {}).get("title", "")),
-                "subtitle": str(data.get("listing", {}).get("subtitle", "")),
-                "description": str(data.get("listing", {}).get("description", "")),
-                "keywords": [str(k) for k in data.get("listing", {}).get("keywords", [])][:20],
+            raw = data.get("listing")
+            if not isinstance(raw, dict):
+                self._json(400, {"error": "Send a listing object to check."})
+                return
+            kws = raw.get("keywords", [])
+            listing = {
+                "title": str(raw.get("title", "")), "subtitle": str(raw.get("subtitle", "")),
+                "description": str(raw.get("description", "")),
+                "keywords": [str(k) for k in kws][:20] if isinstance(kws, list) else [],
             }
-            issues = kdp_rules.check_listing(listing, data.get("marketplace", "amazon.com"))
+            issues = kdp_rules.check_listing(listing, str(data.get("marketplace", "amazon.com")))
             self._json(200, {"listing": listing, "issues": [i.to_dict() for i in issues], "score": kdp_rules.score(issues)})
         elif self.path == "/api/generate":
             try:

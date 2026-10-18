@@ -86,6 +86,7 @@
 
   async function generate(ev) {
     ev && ev.preventDefault();
+    if (state.controller) return; // already writing
     const b = brief();
     if (b.theme.length < 3) { $("theme").setAttribute("aria-invalid", "true"); $("theme").focus(); toast("Add a theme first"); return; }
     state.marketplace = b.marketplace;
