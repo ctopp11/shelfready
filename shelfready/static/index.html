@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShelfReady · KDP listing studio</title>
+  <meta name="description" content="Private, local-first KDP listing writer for colouring-book publishers. Runs on Gemma via Ollama.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231f3a34'/><path d='M9 23V9h9a5 5 0 0 1 0 10h-5' stroke='%23f4efe6' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="8"/><path d="M9 23V9h9a5 5 0 0 1 0 10h-5"/></svg>
+      </span>
+      <div>
+        <strong>ShelfReady</strong>
+        <span class="tagline">KDP listing studio for colouring books</span>
+      </div>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite">
+      <span class="dot"></span><span id="status-text">Checking local model…</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Brief -->
+    <form class="panel brief" id="brief" novalidate>
+      <div class="panel-head">
+        <span class="step">01</span>
+        <div>
+          <h2>The brief</h2>
+          <p>Facts only. ShelfReady never invents features you didn't give it.</p>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>Theme <em>required</em></span>
+        <input id="theme" name="theme" maxlength="200" required placeholder="e.g. Cozy cabins in the Canadian Rockies" autocomplete="off">
+        <small class="hint" id="theme-hint"></small>
+      </label>
+
+      <div class="row">
+        <label class="field">
+          <span>Audience</span>
+          <select name="audience" id="audience">
+            <option value="adults">Adults</option>
+            <option value="seniors">Seniors</option>
+            <option value="teens">Teens</option>
+            <option value="kids-8-12">Kids 8–12</option>
+            <option value="kids-4-8">Kids 4–8</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Style</span>
+          <select name="style" id="style">
+            <option value="cozy">Cozy &amp; cute</option>
+            <option value="bold-easy">Bold &amp; easy</option>
+            <option value="detailed">Detailed &amp; intricate</option>
+            <option value="mandala">Mandala &amp; pattern</option>
+            <option value="realistic">Realistic</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="row three">
+        <label class="field">
+          <span>Designs</span>
+          <input name="pages" id="pages" type="number" min="1" max="500" inputmode="numeric" placeholder="50">
+        </label>
+        <label class="field">
+          <span>Trim size</span>
+          <select name="trim" id="trim">
+            <option value="8.5 x 11 in">8.5 × 11"</option>
+            <option value="8.5 x 8.5 in">8.5 × 8.5"</option>
+            <option value="8 x 10 in">8 × 10"</option>
+            <option value="6 x 9 in">6 × 9"</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Marketplace</span>
+          <select name="marketplace" id="marketplace">
+            <option value="amazon.com">US · .com</option>
+            <option value="amazon.ca">Canada · .ca</option>
+            <option value="amazon.co.uk">UK · .co.uk</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" name="single_sided" id="single_sided" checked><span></span>Single-sided pages</label>
+        <label class="toggle"><input type="checkbox" name="large_print" id="large_print"><span></span>Large print</label>
+      </div>
+
+      <label class="field">
+        <span>Notes &amp; voice <em>optional</em></span>
+        <textarea name="notes" id="notes" rows="3" maxlength="800" placeholder="Anything true and specific: what's inside, who it's for, the feeling you want buyers to have."></textarea>
+      </label>
+
+      <button class="primary" id="generate" type="submit">
+        <span class="label">Write my listing</span>
+        <kbd>⌘ ↵</kbd>
+      </button>
+      <p class="privacy">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.4 3.4 8.4 8 9 4.6-.6 8-4.6 8-9V6l-8-3Z"/></svg>
+        <span>Runs on <b id="model-name">your local model</b>. Your brief never leaves this computer.</span>
+      </p>
+    </form>
+
+    <!-- Output -->
+    <section class="panel output" id="output" aria-live="polite">
+      <div class="panel-head">
+        <span class="step">02</span>
+        <div>
+          <h2>Your listing</h2>
+          <p>Edit anything; the KDP checks re-run as you type.</p>
+        </div>
+        <div class="score" id="score" hidden>
+          <svg viewBox="0 0 36 36"><circle class="track" cx="18" cy="18" r="15.5"/><circle class="meter" id="score-meter" cx="18" cy="18" r="15.5"/></svg>
+          <div><b id="score-value">0</b><span>KDP ready</span></div>
+        </div>
+      </div>
+
+      <div class="empty" id="empty">
+        <svg viewBox="0 0 200 140" aria-hidden="true" class="art">
+          <path d="M30 120h140M48 120V58l52-30 52 30v62"/><path d="M84 120V88h32v32"/><circle cx="100" cy="62" r="9"/>
+          <path d="M20 120c8-22 22-30 22-30s6 18-4 30M172 120c-6-16 2-34 2-34s14 14 8 34"/>
+        </svg>
+        <h3>A clean, compliant listing in about a minute.</h3>
+        <p>Title, subtitle, a formatted description and all seven keyword boxes, written by an open model and checked line by line against KDP's published rules.</p>
+        <button class="ghost" type="button" id="sample">Try a sample brief</button>
+      </div>
+
+      <div class="working" id="working" hidden>
+        <div class="bar"><span id="bar-fill"></span></div>
+        <div class="working-row">
+          <b id="stage-text">Drafting your listing…</b>
+          <span id="working-meta">0 characters · 0s</span>
+        </div>
+        <p class="muted">Gemma is writing locally, so speed depends on your machine. You can keep editing the brief.</p>
+        <button class="ghost small" type="button" id="cancel">Cancel</button>
+      </div>
+
+      <div class="alert" id="alert" role="alert" hidden>
+        <b id="alert-title"></b>
+        <span id="alert-hint"></span>
+      </div>
+
+      <div class="result" id="result" hidden>
+        <article class="card">
+          <header><h3>Title</h3><span class="count" id="title-count"></span><button class="copy" data-copy="title" type="button">Copy</button></header>
+          <input id="out-title" class="big" spellcheck="true">
+          <header class="sub"><h3>Subtitle</h3><button class="copy" data-copy="subtitle" type="button">Copy</button></header>
+          <textarea id="out-subtitle" rows="2"></textarea>
+          <div class="meter-line"><span id="combo-fill"></span></div>
+          <small class="muted" id="combo-text"></small>
+        </article>
+
+        <article class="card">
+          <header><h3>Keywords</h3><span class="count">7 boxes · 50 characters each</span><button class="copy" data-copy="keywords" type="button">Copy all</button></header>
+          <ol class="keywords" id="out-keywords"></ol>
+        </article>
+
+        <article class="card">
+          <header>
+            <h3>Description</h3><span class="count" id="desc-count"></span>
+            <div class="seg" role="tablist">
+              <button type="button" class="on" data-view="preview" role="tab">Preview</button>
+              <button type="button" data-view="html" role="tab">HTML</button>
+            </div>
+            <button class="copy" data-copy="description" type="button">Copy HTML</button>
+          </header>
+          <div class="preview" id="desc-preview"></div>
+          <textarea id="out-description" rows="12" class="mono" hidden></textarea>
+        </article>
+
+        <article class="card checks">
+          <header><h3>KDP checks</h3><span class="count" id="checks-count"></span></header>
+          <ul id="issues"></ul>
+        </article>
+
+        <div class="actions">
+          <button class="ghost" type="button" id="copy-all">Copy everything</button>
+          <button class="ghost" type="button" id="download">Download .txt</button>
+          <span class="muted" id="meta"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    ShelfReady is a drafting tool, not legal advice. You remain responsible for your KDP listing.
+    Rules cited from KDP's Metadata Guidelines, Keywords and Book Description help pages.
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
