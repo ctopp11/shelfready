@@ -49,7 +49,7 @@ Open **http://127.0.0.1:8787**, click **Try a sample brief**, then **Write my li
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SHELFREADY_MODEL` | `gemma3:4b` | Any Ollama chat model: `gemma3:1b` for older laptops, `gemma3:12b` for richer copy |
+| `SHELFREADY_MODEL` | `gemma3:4b` | Any Ollama chat model, e.g. `gemma3:1b` (lighter) or `gemma3:12b` (larger). Only `gemma3:4b` has been tested. |
 | `OLLAMA_HOST` | `http://127.0.0.1:11434` | Where Ollama is listening |
 | `SHELFREADY_PORT` | `8787` | Web UI port |
 | `SHELFREADY_HOST` | `127.0.0.1` | Bind address. It stays on localhost by default. |
